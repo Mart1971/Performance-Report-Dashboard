@@ -225,6 +225,7 @@ select option{background:var(--bg2);color:var(--t1)}
       </div>
     </div>
     <div id="fetchError" style="display:none;background:var(--red-d);border:1px solid var(--red);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--red);line-height:1.5;text-align:left;max-width:460px"></div>
+    <button id="fetchLaunchBtn" onclick="launchFromFetch()" style="display:none;margin-bottom:18px;background:linear-gradient(135deg,var(--grn),#059669);color:#fff;border:none;padding:12px 40px;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Launch Dashboard</button>
 
     <!-- Manual fallback (shown only on fetch failure) -->
     <div id="manualFallback" style="display:none">
@@ -510,7 +511,8 @@ const S = {
   charts:  {},              // Chart.js instances keyed by canvas id
   adminVerification: { verifiedDate: '', verifiedBy: '', verifiedNote: '' },
   customRange: { from: '', to: '' },
-  cutoffDate: null
+  cutoffDate: null,
+  _cachedCSV: null
 };
 
 // ── Safe DOM helper ──────────────────────────────────────────────────────
@@ -1011,6 +1013,8 @@ async function fetchAndLaunch() {
     if (!respE.ok) throw new Error('HTTP ' + respE.status);
     var csvE = await respE.text();
     setFetchRow('ebbsfleet', '\u2699\ufe0f', 'Parsing\u2026', '#8896b0');
+    if (!S._cachedCSV) S._cachedCSV = {};
+    S._cachedCSV.ebbsfleet = csvE;
     S.data.ebbsfleet = await parseCSVText(csvE, 'ebbsfleet');
     setFetchRow('ebbsfleet', '\u2705', 'Loaded', '#4ade80');
   } catch (err) {
@@ -1024,6 +1028,7 @@ async function fetchAndLaunch() {
     if (!respS.ok) throw new Error('HTTP ' + respS.status);
     var csvS = await respS.text();
     setFetchRow('stnicolas', '\u2699\ufe0f', 'Parsing\u2026', '#8896b0');
+    S._cachedCSV.stnicolas = csvS;
     S.data.stnicolas = await parseCSVText(csvS, 'stnicolas');
     setFetchRow('stnicolas', '\u2705', 'Loaded', '#4ade80');
   } catch (err) {
@@ -1048,8 +1053,28 @@ async function fetchAndLaunch() {
   }
 
   document.getElementById('fetchIcon').textContent = '\u2705';
-  document.getElementById('uploadTitle').textContent = 'Data Loaded';
-  initDB();
+  document.getElementById('uploadTitle').textContent = 'Data Fetched \u2014 Set date and launch';
+  document.getElementById('uploadDesc').textContent = 'Set the report cutoff date below, then click Launch Dashboard.';
+  var lb = document.getElementById('fetchLaunchBtn');
+  if (lb) lb.style.display = 'inline-block';
+}
+
+function launchFromFetch() {
+  var cutoffEl = document.getElementById("reportCutoffDate");
+  S.cutoffDate = (cutoffEl && cutoffEl.value) ? new Date(cutoffEl.value) : null;
+  // Re-parse both cached CSVs with the cutoff date applied
+  if (S._cachedCSV && S._cachedCSV.ebbsfleet && S._cachedCSV.stnicolas) {
+    Promise.all([
+      parseCSVText(S._cachedCSV.ebbsfleet, "ebbsfleet"),
+      parseCSVText(S._cachedCSV.stnicolas, "stnicolas")
+    ]).then(function(results) {
+      S.data.ebbsfleet = results[0];
+      S.data.stnicolas = results[1];
+      initDB();
+    });
+  } else {
+    initDB();
+  }
 }
 
 // ── File upload handling ─────────────────────────────────────────────────
