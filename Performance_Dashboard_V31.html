@@ -2441,11 +2441,11 @@ function renderGeneral() {
   var pentairRowsToDate = pentairQuarter.rows.filter(function(r) { return r.date <= generalRefDate; });
   var pentairForecast = lastVal(pentairRowsToDate, 'pentairForecast');
   var pentairAchieved = lastVal(pentairRowsToDate, 'pentairAchieved');
-  var pentairForecastStatus = statusPct(pentairForecast, 1, 1);
+  var pentairForecastStatus = statusPct(pentairForecast, 100, 1);
   setSummaryStatus('sPentairForecastMain', pentairForecastStatus.text, pentairForecastStatus.ok);
   var pentairDaysRemaining = daysRemainingInQuarter(generalRefDate, pentairQuarter.e);
   setTxt('sPentairForecastSub', pentairAchieved !== null
-    ? ('Achieved: ' + (pentairAchieved * 100).toFixed(1) + '%<br>' +
+    ? ('Achieved: ' + pentairAchieved.toFixed(1) + '%<br>' +
        (pentairDaysRemaining !== null ? pentairDaysRemaining + ' days left' : '—'))
     : 'vs 100% target');
 
@@ -2454,11 +2454,11 @@ function renderGeneral() {
   var chpRowsToDate = chpQuarter.rows.filter(function(r) { return r.date <= generalRefDate; });
   var chpForecast = lastVal(chpRowsToDate, 'chp1RHIForecast');
   var chpAchieved = lastVal(chpRowsToDate, 'chp1RHIAchieved');
-  var chpForecastStatus = statusPct(chpForecast, 1, 1);
+  var chpForecastStatus = statusPct(chpForecast, 100, 1);
   setSummaryStatus('sChpForecastMain', chpForecastStatus.text, chpForecastStatus.ok);
   var chpDaysRemaining = daysRemainingInQuarter(generalRefDate, chpQuarter.e);
   setTxt('sChpForecastSub', chpAchieved !== null
-    ? ('Achieved: ' + (chpAchieved * 100).toFixed(1) + '%<br>' +
+    ? ('Achieved: ' + chpAchieved.toFixed(1) + '%<br>' +
        (chpDaysRemaining !== null ? chpDaysRemaining + ' days left' : '—'))
     : 'vs 100% target');
 
@@ -2605,7 +2605,7 @@ function renderPentair() {
   var la = lastVal(chartRows, 'pentairAchieved');
   var lf = lastVal(chartRows, 'pentairForecast');
   var gasStatus = statusPct(avgG, gridTarget, 1);
-  var forecastStatus = statusPct(lf, 1, 1);
+  var forecastStatus = statusPct(lf, 100, 1);
 
   setSummaryStatus('p_sGasToGridMain', gasStatus.text, gasStatus.ok);
   var avgCV = avg(chartRows, 'gridCV');
@@ -2616,7 +2616,7 @@ function renderPentair() {
   setSummaryStatus('p_sPentairForecastMain', forecastStatus.text, forecastStatus.ok);
   var pDaysRemaining = daysRemainingInQuarter(cutoffDate || e, e);
   setTxt('p_sPentairForecastSub', la !== null
-    ? ('Achieved: ' + (la * 100).toFixed(1) + '%<br>' + (pDaysRemaining !== null ? pDaysRemaining + ' days left' : '—'))
+    ? ('Achieved: ' + la.toFixed(1) + '%<br>' + (pDaysRemaining !== null ? pDaysRemaining + ' days left' : '—'))
     : 'vs 100% target');
   setTxt('p_sTotalCo2', formatDec(totalCo2Sum, 2) + ' t');
   setTxt('p_sFeedEff', feedEff !== null ? formatDec(feedEff, 1) + ' m³/t' : '—');
@@ -2700,13 +2700,13 @@ function renderChp() {
   var totalGasUsed = sum(effectiveRows, 'chp1Gas');
   var la = lastVal(effectiveRows, 'chp1RHIAchieved');
   var lf = lastVal(effectiveRows, 'chp1RHIForecast');
-  var forecastStatus = statusPct(lf, 1, 1);
+  var forecastStatus = statusPct(lf, 100, 1);
   var chpEff = safeDivide(totalChpOut, totalGasUsed);
 
   setSummaryStatus('cForecastMain', forecastStatus.text, forecastStatus.ok);
   var cDaysRemaining = daysRemainingInQuarter(cutoffDate || e, e);
   setTxt('cForecastSub', la !== null
-    ? ('Achieved: ' + (la * 100).toFixed(1) + '%<br>' + (cDaysRemaining !== null ? cDaysRemaining + ' days left' : '—'))
+    ? ('Achieved: ' + la.toFixed(1) + '%<br>' + (cDaysRemaining !== null ? cDaysRemaining + ' days left' : '—'))
     : 'vs 100% target');
   setTxt('cCHP1TB', avgChp1Target ? 'Target: ' + formatInt(avgChp1Target) + ' kWh/day' : 'Target');
 
